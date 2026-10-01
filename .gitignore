@@ -1,0 +1,19 @@
+# Terraform state and local overrides
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+terraform.tfvars
+*.auto.tfvars
+# Node
+node_modules/
+coverage/
+# Local/container artifacts
+.env
+.DS_Store
+*.log
+# Local credentials and Terraform variable overrides
+.env*
+*.tfvars
+*.tfvars.json

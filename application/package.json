@@ -1,0 +1,7 @@
+{
+  "name": "aws-ha-dr-demo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local health/version demo for the AWS HA/DR hands-on portfolio project",
+  "scripts": { "start": "node src/server.js", "test": "node --test" }
+}

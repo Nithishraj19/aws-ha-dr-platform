@@ -1,0 +1,7 @@
+# Reference only; never put credentials or secrets in tfvars.
+aws_region = "ap-south-1"
+instance_type = "t3.micro"
+db_instance_class = "db.t4g.micro"
+create_dns_record = false
+route53_zone_id = ""
+app_fqdn = "ha-dr.example.com"

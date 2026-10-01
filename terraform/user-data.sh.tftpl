@@ -1,0 +1,41 @@
+#!/bin/bash
+set -euxo pipefail
+dnf install -y nodejs amazon-cloudwatch-agent
+mkdir -p /opt/ha-dr-demo
+cat >/opt/ha-dr-demo/server.js <<'APP'
+const http = require('node:http');
+const port = ${app_port};
+http.createServer((req,res)=>{res.setHeader('content-type','application/json'); if(req.url==='/health'){res.writeHead(200); return res.end('{"status":"UP"}')} if(req.url==='/version'){res.writeHead(200); return res.end('{"version":"terraform-reference"}')} res.end('{"service":"aws-ha-dr-demo"}')}).listen(port,'0.0.0.0');
+APP
+cat >/etc/systemd/system/ha-dr-demo.service <<'UNIT'
+[Unit]
+Description=HA DR sample health endpoint
+After=network.target
+[Service]
+ExecStart=/usr/bin/node /opt/ha-dr-demo/server.js
+StandardOutput=append:/var/log/ha-dr-demo.log
+StandardError=append:/var/log/ha-dr-demo.log
+Restart=always
+User=nobody
+[Install]
+WantedBy=multi-user.target
+UNIT
+cat >/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<'CW'
+{
+  "logs": {
+    "logs_collected": {
+      "files": {
+        "collect_list": [{
+          "file_path": "/var/log/ha-dr-demo.log",
+          "log_group_name": "/aws/ec2/aws-ha-dr/application",
+          "log_stream_name": "{instance_id}",
+          "retention_in_days": 30
+        }]
+      }
+    }
+  }
+}
+CW
+systemctl daemon-reload
+systemctl enable --now ha-dr-demo
+/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json -s
